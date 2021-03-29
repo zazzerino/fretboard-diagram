@@ -33,6 +33,9 @@ export interface Opts {
   onClick: (coord: FretCoord, diagram: FretboardDiagram) => any
 }
 
+/**
+ * The options given by the user. Only `id` is required.
+ */
 export type UserOpts = Pick<Opts, 'id'> & Partial<Opts>;
 
 /**
