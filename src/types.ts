@@ -4,7 +4,7 @@ export interface Point {
 }
 
 /**
- * A string/fret coordinate on the fretboard.
+ * A string and fret on the fretboard.
  */
 export interface FretCoord {
   string: number,
@@ -13,6 +13,7 @@ export interface FretCoord {
 
 /**
  * A FretCoord with an optional color.
+ * Represents a dot drawn on the fretboard.
  */
 export interface Dot extends FretCoord {
   color?: string,
@@ -22,7 +23,7 @@ export interface Dot extends FretCoord {
  * The settings used by a fretboard diagram.
  */
 export interface Opts {
-  id: string,
+  rootId: string,
   width: number,
   height: number,
   startFret: number,
@@ -35,10 +36,15 @@ export interface Opts {
   drawDotOnHover: boolean,
   hoverDotColor: string,
   label: string,
-  onClick: (coord: FretCoord, diagram: SVGSVGElement) => any
+  onClick: (fretCoord: FretCoord, svgElem: SVGSVGElement) => any
 }
 
 /**
  * The options given by the user. Only `id` is required.
  */
-export type UserOpts = Pick<Opts, 'id'> & Partial<Opts>;
+export type UserOpts = Pick<Opts, 'rootId'> & Partial<Opts>;
+
+/**
+ * The default options that will be used if none are given.
+ */
+export type DefaultOpts = Omit<Opts, 'rootId'>;

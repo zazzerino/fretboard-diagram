@@ -1,8 +1,8 @@
+import {Point} from "./types";
+
 /**
  * The svg namespace. Required to create svg elements.
  */
-import {Point} from "./types";
-
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
 /**
@@ -14,12 +14,15 @@ export function distanceBetween(pt1: Point, pt2: Point): number {
   return Math.hypot(x, y);
 }
 
-export function makeSvgContainer(width: number, height: number): SVGSVGElement {
-  const container = document.createElementNS(SVG_NS, 'svg');
-  container.setAttribute('width', width.toString());
-  container.setAttribute('height', height.toString());
-  container.setAttribute('viewBox', `0 0 ${width} ${height}`);
-  return container;
+/**
+ * Create an svg element with the given width and height.
+ */
+export function makeSvgElement(width: number, height: number): SVGSVGElement {
+  const elem = document.createElementNS(SVG_NS, 'svg');
+  elem.setAttribute('width', width.toString());
+  elem.setAttribute('height', height.toString());
+  elem.setAttribute('viewBox', `0 0 ${width} ${height}`);
+  return elem;
 }
 
 /**
@@ -53,8 +56,8 @@ export function makeCircle(cx: number, cy: number, r: number, color = 'white'): 
 }
 
 /**
- * Create an svg text element and attach it to `parent`. 
- * (`x`, `y`) is the starting point of the text baseline.
+ * Create an svg text element and attach it to `parent`.
+ * (x,y) is the starting point of the text baseline.
  */
 export function makeText(x: number, y: number, text: string, fontSize = 16): SVGTextElement {
   const textElem = document.createElementNS(SVG_NS, 'text');

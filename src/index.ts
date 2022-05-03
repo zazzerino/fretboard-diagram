@@ -1,10 +1,10 @@
-import {distanceBetween, makeCircle, makeLine, makeSvgContainer, makeText} from './svg';
-import {Dot, FretCoord, Opts, Point, UserOpts} from "./types";
+import {distanceBetween, makeCircle, makeLine, makeSvgElement, makeText} from './svg';
+import {DefaultOpts, Dot, FretCoord, Opts, Point, UserOpts} from "./types";
 
 /**
- * Default options for a 6-string guitar in standard tuning.
+ * Options for a 6-string guitar in standard tuning.
  */
-const defaultOpts: Omit<Opts, 'id'> = {
+const DEFAULT_OPTS: DefaultOpts = {
   width: 200,
   height: 300,
   startFret: 1,
@@ -17,102 +17,195 @@ const defaultOpts: Omit<Opts, 'id'> = {
   drawDotOnHover: false,
   hoverDotColor: 'white',
   label: '',
-  onClick: (_coord: FretCoord, _diagram: SVGSVGElement) => null, // does nothing
+  onClick: (_fretCoord, _svgElem) => null,
 }
 
-function xMargin(opts: Opts) {
-  return opts.width / 6;
+function findElementOrThrow(elemId: string): HTMLElement {
+  const elem = document.getElementById(elemId);
+  if (!elem) throw new Error(`Could not find element with id: ${elemId}`);
+  return elem;
+}
+
+// interface FretboardData {
+//   stringCount: number;
+//   xMargin: number;
+//   yMargin: number;
+//   neckWidth: number;
+//   neckHeight: number;
+//   stringMargin: number;
+//   fretCount: number;
+//   fretHeight: number;
+// }
+
+function fretboardData(args: {
+  width: number;
+  height: number;
+  stringNames: string[];
+  label: string;
+  startFret: number;
+  endFret: number;
+}) {
+  const {width, height, stringNames, label, startFret, endFret} = args;
+  const stringCount = stringNames.length;
+  const xMargin = width / 6;
+  const yMarginOffset = label === '' ? 1 : 1.5;
+  const yMargin = (height / 8) * yMarginOffset;
+  const neckWidth = width - (xMargin * 2);
+  const neckHeight = height - (yMargin * 2);
+  const stringMargin = neckWidth / (stringCount - 1);
+  const fretCountOffset = startFret === 0 ? 0 : 1;
+  const fretCount = (endFret - startFret) + fretCountOffset;
+  const fretHeight = neckHeight / fretCount;
+  const fretNumOffset = neckWidth / 6;
+
+  return {
+    stringCount,
+    xMargin,
+    yMargin,
+    neckWidth,
+    neckHeight,
+    stringMargin,
+    fretCount,
+    fretHeight,
+    fretNumOffset,
+  };
 }
 
 export function makeFretboardDiagram(userOpts: UserOpts) {
-  const opts = {...defaultOpts, ...userOpts};
-  const {id, width, height, stringNames} = opts;
+  const opts: Opts = {...DEFAULT_OPTS, ...userOpts}; // merge the default opts with the user opts
+  const {width, height, label, startFret, endFret} = opts;
 
-  const stringCount = stringNames.length;
+  const {
+    stringCount,
+    xMargin,
+    yMargin,
+    neckHeight,
+    stringMargin,
+    fretCount,
+    fretHeight,
+    fretNumOffset
+  } = fretboardData(opts);
 
-  const rootElem = document.getElementById(id);
-  if (!rootElem) throw new Error("Could not find element with id: ${id}");
+  const rootElem = findElementOrThrow(opts.rootId);
+  const svgElem = makeSvgElement(width, height);
 
-  const svgElem = makeSvgContainer(width, height);
+  drawStrings(svgElem, {xMargin, yMargin, neckHeight, stringCount, stringMargin});
+  drawFrets(svgElem, {width, xMargin, yMargin, fretCount, fretHeight});
 
-//   get xMargin(): number {
-//     return this.width / 6;
-//   }
-//
-//   // distance from the top of the svg container to the top of the strings
-//   get yMargin(): number {
-//     let margin = this.height / 8;
-//
-//     if (this.label) {
-//       margin *= 1.5;
-//     }
-//
-//     return margin;
-//   }
-//
-//   // distance between the outer strings
-//   get neckWidth(): number {
-//     return this.width - (this.xMargin * 2);
-//   }
-//
-//   // distance from the top to the bottom of the strings
-//   get neckHeight(): number {
-//     return this.height - (this.yMargin * 2);
-//   }
-//
-//   // the number of strings
-//   get stringCount(): number {
-//     return this.stringNames.length;
-//   }
-//
-//   // the number of frets
-//   get fretCount(): number {
-//     const count = this.endFret - this.startFret + 1;
-//     return this.startFret === 0 ? count - 1 : count;
-//   }
-//
-//   // vertical distance between frets
-//   get fretHeight(): number {
-//     return this.neckHeight / this.fretCount;
-//   }
-//
-//   // horizontal distance between strings
-//   get stringMargin(): number {
-//     return this.neckWidth / (this.stringCount - 1);
-//   }
-//
-//   // size of the drawn dots
-//   get dotRadius(): number {
-//     return this.fretHeight / 6;
-//   }
-//
-//   // the distance from the fretNum to the left side of the neck
-//   get fretNumOffset(): number {
-//     return this.neckWidth / 6;
-//   }
+  if (label) drawLabel(svgElem, {label, width, yMargin});
+
+  if (opts.showFretNums) {
+    drawFretNumbers(svgElem, {
+      startFret, endFret, fretNumOffset, fretHeight, stringMargin, stringCount, xMargin, yMargin
+    });
+  }
 
   rootElem.appendChild(svgElem);
+  return rootElem;
 }
 
-function drawStrings(stringCount: number) {
+function drawStrings(svgElem: SVGElement, args: {
+  xMargin: number;
+  yMargin: number;
+  neckHeight: number;
+  stringCount: number;
+  stringMargin: number;
+}) {
+  const {xMargin, yMargin, neckHeight, stringCount, stringMargin} = args;
+
   for (let i = 0; i < stringCount; i++) {
-    // const x =
+    const x = (i * stringMargin) + xMargin;
+    const line = makeLine(x, yMargin, x, yMargin + neckHeight);
+    svgElem.appendChild(line);
   }
 }
 
-//   drawStrings() {
-//     for (let i = 0; i < this.stringCount; i++) {
-//       const x = (i * this.stringMargin) + this.xMargin;
-//       makeLine(this.svgElem, x, this.yMargin, x, this.yMargin + this.neckHeight);
-//     }
-//   }
-//
-//   drawFrets() {
-//     for (let i = 0; i <= this.fretCount; i++) {
-//       const y = (this.fretHeight * i) + this.yMargin;
-//       makeLine(this.svgElem, this.xMargin, y, this.width - this.xMargin, y);
-//     }
-//   }
+function drawFrets(elem: SVGElement, args: {
+  width: number;
+  xMargin: number;
+  yMargin: number;
+  fretCount: number;
+  fretHeight: number;
+}) {
+  const {width, xMargin, yMargin, fretCount, fretHeight} = args;
+
+  for (let i = 0; i <= fretCount; i++) {
+    const y = (i * fretHeight) + yMargin;
+    const x1 = xMargin;
+    const x2 = width - xMargin;
+    const line = makeLine(x1, y, x2, y);
+    elem.appendChild(line);
+  }
+}
+
+function drawLabel(elem: SVGElement, args: {width: number, yMargin: number, label: string}) {
+  const {width, yMargin, label} = args;
+  const x = width / 2;
+  const y = yMargin - (yMargin / 2);
+  const textElem = makeText(x, y, label);
+  elem.appendChild(textElem);
+}
+
+function drawFretNumbers(elem: SVGElement, args: {
+  startFret: number;
+  endFret: number;
+  stringCount: number;
+  xMargin: number;
+  yMargin: number;
+  stringMargin: number;
+  fretHeight: number;
+  fretNumOffset: number;
+}) {
+  const {
+    stringCount, startFret, endFret, xMargin, yMargin, stringMargin, fretHeight, fretNumOffset
+  } = args;
+  const fontSize = 16; // TODO: adjust this for different diagram sizes
+  const string = stringCount;
+
+  for (let fret = startFret; fret <= endFret; fret++) {
+    const {x, y} = fretCoordPoint({
+      string, fret, xMargin, yMargin, stringCount, stringMargin, fretHeight
+    });
+
+    const textElem = makeText(x-fretNumOffset, y+fretHeight/4, fret.toString(), fontSize);
+    elem.appendChild(textElem);
+  }
+}
+
+/**
+ * Takes a FretCoord and returns the Point relative to the top left of the parent svg container.
+ */
+function fretCoordPoint(args: {
+  string: number;
+  fret: number;
+  xMargin: number;
+  yMargin: number;
+  stringCount: number;
+  stringMargin: number;
+  fretHeight: number;
+}): Point {
+  const {string, fret, xMargin, yMargin, stringCount, stringMargin, fretHeight} = args;
+  const stringNum = Math.abs(string - stringCount);
+  const x = (stringNum * stringMargin) + xMargin;
+  const yOffset = fret === 0 ? 0 : -fretHeight / 8;
+  const y = (fret * fretHeight) - (fretHeight / 2) + yMargin + yOffset;
+  return {x, y};
+}
+
+/**
+ * Returns the svg coordinate (x,y) of the `event`, i.e., the coordinate that was clicked.
+ */
+function cursorPoint(elem: SVGSVGElement, event: MouseEvent): Point {
+    const point = elem.createSVGPoint();
+    point.x = event.clientX;
+    point.y = event.clientY;
+
+    const screenCTM = elem.getScreenCTM();
+    if (!screenCTM) { throw new Error(`could not get the screen ctm of ${elem}`); }
+
+    const matrix = screenCTM.inverse();
+    return point.matrixTransform(matrix);
+}
 
 /**
  * Creating an instance of this class will draw a diagram in the element with `id`.
@@ -436,4 +529,58 @@ function drawStrings(stringCount: number) {
 //   get fretNumOffset(): number {
 //     return this.neckWidth / 6;
 //   }
+// }
+
+
+// /**
+//  * The distance from the left side of the svg container to the leftmost string.
+//  */
+// function getXMargin({width: number}): number {
+//   return width / 6;
+// }
+
+// /**
+//  * The distance from the top of the svg container to the top of the strings.
+//  */
+// function yMargin(height: number, label?: string): number {
+//   const offset = label == null ? 1 : 1.5; // if there's a label, make the offset larger
+//   return (height / 8) * offset;
+// }
+
+// function getNeckWidth(width: number, xMargin: number): number {
+//   return width - (xMargin * 2);
+// }
+//
+// function getNeckHeight(height: number, yMargin: number): number {
+//   return height - (yMargin * 2);
+// }
+//
+// function getFretCount(startFret: number, endFret: number): number {
+//   const offset = startFret === 0 ? 0 : 1;
+//   return (endFret - startFret) + offset;
+// }
+//
+// function getFretHeight(neckHeight: number, fretCount: number): number {
+//   return neckHeight / fretCount;
+// }
+//
+// /**
+//  * The horizontal distance between strings.
+//  */
+// function getStringMargin(neckWidth: number, stringCount: number): number {
+//   return neckWidth / (stringCount - 1);
+// }
+//
+// /**
+//  * The size of the dots drawn over the frets
+//  */
+// function dotRadius(fretHeight: number): number {
+//   return fretHeight / 6;
+// }
+//
+// /**
+//  * The distance between the fret number label and the left side of the neck.
+//  */
+// function fretNumOffset(neckWidth: number): number {
+//   return neckWidth / 6;
 // }

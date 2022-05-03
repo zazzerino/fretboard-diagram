@@ -10,7 +10,7 @@
 <body>
   <h2>Fretboard Diagram Examples</h2>
   <div id="Am6-diagram"></div>
-  <div id="Gmaj7-diagram"></div>
+<!--  <div id="Gmaj7-diagram"></div>-->
 </body>
 
 <!--the browser can't load cjs modules without the line below-->
@@ -26,7 +26,7 @@
   const randomColor = () => '#' + ((1 << 24) * Math.random() | 0).toString(16);
 
   const opts = {
-    id: 'Am6-diagram',
+    rootId: 'Am6-diagram',
     dots: [
       { string: 5, fret: 3, color: randomColor() },
       { string: 3, fret: 2, color: randomColor() },
@@ -36,11 +36,11 @@
     hoverDotColor: randomColor(),
     showStringNames: true,
     showFretNums: true,
+    label: 'Amin6',
     onClick: coord => console.log(`clicked on string: ${coord.string}, fret: ${coord.fret}`)
   }
 
-  // const fd = makeFretboardDiagram(opts);
-  // console.log(fd);
+  const fd = makeFretboardDiagram(opts);
 
   // new FretboardDiagram({
   //   id: 'Am6-diagram',
