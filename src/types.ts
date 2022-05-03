@@ -38,20 +38,7 @@ export interface Opts {
   onClick: (fretCoord: FretCoord, svgElem: SVGSVGElement) => any
 }
 
-/**
- * The options given by the user. Only `id` is required.
- */
-export type UserOpts = Partial<Opts>;
-
-/**
- * The default options that will be used if none are given.
- */
-export type DefaultOpts = Omit<Opts, 'rootId'>;
-
-/**
- * Fretboard information that will be calculated from the given Opts.
- */
-export interface FretboardData {
+export type FretboardData = Opts & {
   xMargin: number;
   yMargin: number;
   neckWidth: number;
@@ -63,10 +50,17 @@ export interface FretboardData {
   fretNumOffset: number;
 }
 
-export type FretboardState = Opts & FretboardData;
+export type DrawStringsArgs = Pick<FretboardData,
+  'xMargin' | 'yMargin' | 'neckHeight' | 'stringCount' | 'stringMargin'>
 
-export type DrawStringsArgs = 'xMargin' | 'yMargin' | 'neckHeight' | 'stringCount' | 'stringMargin';
-export type DrawFretsArgs = 'width' | 'xMargin' | 'yMargin' | 'fretCount' | 'fretHeight';
-export type DrawLabelArgs = 'width' | 'yMargin' | 'label';
-export type FretCoordPointArgs = 'xMargin' | 'yMargin' | 'stringCount' | 'stringMargin' | 'fretHeight';
-export type FretboardDataArgs = 'width' | 'height' | 'stringNames' | 'label' | 'startFret' | 'endFret';
+export type DrawFretsArgs = Pick<FretboardData,
+  'width' | 'xMargin' | 'yMargin' | 'fretCount' | 'fretHeight'>
+
+export type DrawLabelArgs = Pick<FretboardData,
+  'width' | 'yMargin' | 'label'>
+
+export type FretCoordPointArgs = Pick<FretboardData,
+  'xMargin' | 'yMargin' | 'stringCount' | 'stringMargin' | 'fretHeight'>
+
+export type DrawFretNumsArgs = Pick<FretboardData,
+  'startFret' | 'endFret' | 'stringCount' | 'xMargin' | 'yMargin' | 'stringMargin' | 'fretHeight' | 'fretNumOffset'>

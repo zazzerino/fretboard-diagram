@@ -10,29 +10,28 @@
 <body>
   <h2>Fretboard Diagram Examples</h2>
   <div id="Am6-diagram"></div>
-<!--  <div id="Gmaj7-diagram"></div>-->
 </body>
 
 <!--the browser can't load cjs modules without the line below-->
-<script type="text/javascript">var exports = {};</script>
+<script type="text/javascript">let exports = {};</script>
 <script type="text/javascript" src="./dist/fretboard-diagram.cjs.production.min.js"></script>
 <script type="text/javascript">
-  // const FretboardDiagram = exports.FretboardDiagram;
+
   const makeFretboardDiagram = exports.makeFretboardDiagram;
-  // const FretboardDiagram = exports.FretboardDiagram;
 
   /**
    * ZPiDER's answer from https://stackoverflow.com/questions/1484506/random-color-generator
    */
   const randomColor = () => '#' + ((1 << 24) * Math.random() | 0).toString(16);
 
+  const aMinor6Dots = [
+    { string: 5, fret: 3, color: randomColor() },
+    { string: 3, fret: 2, color: randomColor() },
+    { string: 1, fret: 0, color: randomColor() }
+  ];
+
   const opts = {
-    rootId: 'Am6-diagram',
-    dots: [
-      { string: 5, fret: 3, color: randomColor() },
-      { string: 3, fret: 2, color: randomColor() },
-      { string: 1, fret: 0, color: randomColor() }
-    ],
+    dots: aMinor6Dots,
     drawDotOnHover: true,
     hoverDotColor: randomColor(),
     showStringNames: true,
@@ -43,42 +42,10 @@
 
   const fd = makeFretboardDiagram(opts);
   console.log(fd);
+
   const elem = document.getElementById('Am6-diagram');
   elem.appendChild(fd);
 
-  // new FretboardDiagram({
-  //   id: 'Am6-diagram',
-  //   dots: [
-  //     { string: 5, fret: 3, color: randomColor() },
-  //     { string: 3, fret: 2, color: randomColor() },
-  //     { string: 1, fret: 0, color: randomColor() }
-  //   ],
-  //   drawDotOnHover: true,
-  //   hoverDotColor: randomColor(),
-  //   showStringNames: true,
-  //   showFretNums: true,
-  //   onClick: (coord) => console.log(`clicked on string: ${coord.string}, fret: ${coord.fret}`)
-  // });
-  //
-  // new FretboardDiagram({
-  //   id: 'Gmaj7-diagram',
-  //   width: 300,
-  //   height: 450,
-  //   startFret: 3,
-  //   endFret: 7,
-  //   showFretNums: true,
-  //   showStringNames: true,
-  //   dots: [
-  //     { string: 4, fret: 3, color: randomColor() },
-  //     { string: 4, fret: 7, color: randomColor() },
-  //     { string: 3, fret: 5, color: randomColor() },
-  //     { string: 2, fret: 4, color: randomColor() },
-  //     { string: 2, fret: 5, color: randomColor() },
-  //     { string: 1, fret: 4, color: randomColor() },
-  //     { string: 1, fret: 7, color: randomColor() }
-  //   ],
-  //   stringNames: ['G', 'D', 'A', 'E']
-  // });
 </script>
 
 </html>
