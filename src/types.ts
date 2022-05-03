@@ -13,7 +13,7 @@ export interface FretCoord {
 
 /**
  * A FretCoord with an optional color.
- * Represents a dot drawn on the fretboard.
+ * Represents a dot drawn on the fretboard diagram.
  */
 export interface Dot extends FretCoord {
   color?: string,
@@ -23,7 +23,6 @@ export interface Dot extends FretCoord {
  * The settings used by a fretboard diagram.
  */
 export interface Opts {
-  rootId: string,
   width: number,
   height: number,
   startFret: number,
@@ -42,9 +41,32 @@ export interface Opts {
 /**
  * The options given by the user. Only `id` is required.
  */
-export type UserOpts = Pick<Opts, 'rootId'> & Partial<Opts>;
+export type UserOpts = Partial<Opts>;
 
 /**
  * The default options that will be used if none are given.
  */
 export type DefaultOpts = Omit<Opts, 'rootId'>;
+
+/**
+ * Fretboard information that will be calculated from the given Opts.
+ */
+export interface FretboardData {
+  xMargin: number;
+  yMargin: number;
+  neckWidth: number;
+  neckHeight: number;
+  stringCount: number;
+  stringMargin: number;
+  fretCount: number;
+  fretHeight: number;
+  fretNumOffset: number;
+}
+
+export type FretboardState = Opts & FretboardData;
+
+export type DrawStringsArgs = 'xMargin' | 'yMargin' | 'neckHeight' | 'stringCount' | 'stringMargin';
+export type DrawFretsArgs = 'width' | 'xMargin' | 'yMargin' | 'fretCount' | 'fretHeight';
+export type DrawLabelArgs = 'width' | 'yMargin' | 'label';
+export type FretCoordPointArgs = 'xMargin' | 'yMargin' | 'stringCount' | 'stringMargin' | 'fretHeight';
+export type FretboardDataArgs = 'width' | 'height' | 'stringNames' | 'label' | 'startFret' | 'endFret';

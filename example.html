@@ -17,6 +17,7 @@
 <script type="text/javascript">var exports = {};</script>
 <script type="text/javascript" src="./dist/fretboard-diagram.cjs.production.min.js"></script>
 <script type="text/javascript">
+  // const FretboardDiagram = exports.FretboardDiagram;
   const makeFretboardDiagram = exports.makeFretboardDiagram;
   // const FretboardDiagram = exports.FretboardDiagram;
 
@@ -41,6 +42,9 @@
   }
 
   const fd = makeFretboardDiagram(opts);
+  console.log(fd);
+  const elem = document.getElementById('Am6-diagram');
+  elem.appendChild(fd);
 
   // new FretboardDiagram({
   //   id: 'Am6-diagram',
