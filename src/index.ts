@@ -44,7 +44,7 @@ export function makeFretboardDiagram(userOpts: Partial<Opts>, defaultOpts = DEFA
 
   if (opts.label) drawLabel(elem, state);
   if (opts.showFretNums) drawFretNums(elem, state);
-  if (dots.length) drawDots(elem, state, dots);
+  if (dots.length) drawDots(elem, state, dots); // will only be called if dots.length > 0
 
   return elem;
 }
@@ -157,7 +157,7 @@ function drawDot(elem: SVGElement, args: DrawDotArgs, dot: Dot) {
   const color = dot.color || dotColor;
   const radiusShrinkage = dot.fret === 0 ? 0.75 : 1; // open string dots will be a little smaller
   const radius = dotRadius * radiusShrinkage;
-  const circle = makeCircle(x, y, radius, color);
+  const circle = makeCircle(x, y+dotRadius/2, radius, color);
   elem.appendChild(circle);
 }
 
