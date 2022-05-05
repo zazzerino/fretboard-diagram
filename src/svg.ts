@@ -17,11 +17,12 @@ export function distanceBetween(pt1: Point, pt2: Point): number {
 /**
  * Create an svg element with the given width and height.
  */
-export function makeSvgElement(width: number, height: number): SVGSVGElement {
+export function makeSvgElement(width: number, height: number, className?: string): SVGSVGElement {
   const elem = document.createElementNS(SVG_NS, 'svg');
   elem.setAttribute('width', width.toString());
   elem.setAttribute('height', height.toString());
   elem.setAttribute('viewBox', `0 0 ${width} ${height}`);
+  if (className) elem.classList.add(className);
   return elem;
 }
 
@@ -39,7 +40,7 @@ export function makeLine(x1: number, y1: number, x2: number, y2: number, color =
 }
 
 /**
- * Create an svg circle element and attach it to `parent`.
+ * Create an svg circle element.
  * @param cx The center x coordinate.
  * @param cy The center y coordinate.
  * @param r The radius.

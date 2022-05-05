@@ -8,13 +8,11 @@ import {
 } from "./types";
 import {makeCircle, makeLine, makeSvgElement, makeText} from "./svg";
 
-const className = 'fretboard-diagram';
-
 /**
  * Options for a 6-string guitar in standard tuning.
  */
 const DEFAULT_OPTS: Opts = {
-  className,
+  className: 'fretboard-diagram',
   width: 200,
   height: 300,
   startFret: 1,
@@ -34,29 +32,36 @@ const DEFAULT_OPTS: Opts = {
  */
 export function makeFretboardDiagram(userOpts: Partial<Opts>, defaultOpts = DEFAULT_OPTS): SVGSVGElement {
   const opts: Opts = {...defaultOpts, ...userOpts}; // merge default and user opts
-  const state: FretboardState = {...opts, ...fretboardData(opts)}; // merge opts and data calculated from opts
+  const data = fretboardData(opts);
+  const state: FretboardState = {...opts, ...data};
 
-  const {width, height, dots, label, showFretNums, onClick} = opts;
-  const elem = makeSvgElement(width, height);
-  elem.classList.add(className);
+  const {className, width, height, dots, label, showFretNums, onClick} = opts;
+  const elem = makeSvgElement(width, height, className);
 
   drawStrings(elem, state);
   drawFrets(elem, state);
 
-  if (label) drawLabel(elem, state, label);
   if (showFretNums) drawFretNums(elem, state);
+  if (label) drawLabel(elem, state, label);
   if (dots.length) drawDots(elem, state, dots); // won't be called if dots.length is 0
 
   if (onClick) {
-    elem.onclick = (ev: MouseEvent) => handleClick(elem, ev);
+    elem.onclick = ev => handleClick(elem, state, ev);
   }
 
   return elem;
 }
 
-function handleClick(elem: SVGSVGElement, ev: MouseEvent) {
+type HandleClickArgs = Pick<
+  FretboardState,
+  'xMargin' | 'yMargin'>
+
+function handleClick(elem: SVGSVGElement, args: HandleClickArgs, ev: MouseEvent) {
+  const {xMargin, yMargin} = args;
   const point = cursorPoint(elem, ev);
-  console.log(point);
+  const x = point.x + xMargin;
+  const y = point.y;
+  console.log(`x:${x}, y:${y}`);
 }
 
 /**
@@ -169,7 +174,7 @@ function drawDot(elem: SVGElement, args: DrawDotArgs, dot: Dot) {
   const color = dot.color || dotColor;
   const dotScale = dot.fret === 0 ? 0.75 : 1; // open string dots will be a little smaller
   const radius = dotRadius * dotScale;
-  const cy = y + (dotRadius / 2);
+  const cy = y + (radius / 2);
 
   const circle = makeCircle(x, cy, radius, color);
   elem.appendChild(circle);
