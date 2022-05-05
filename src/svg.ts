@@ -1,12 +1,12 @@
 import {Point} from "./types";
 
 /**
- * The svg namespace. Required to create svg elements.
+ * The svg namespace. Needed to create svg elements.
  */
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
 /**
- * Calculates the distance between two points.
+ * Calculates the distance between two points. Credit to Euclid.
  */
 export function distanceBetween(pt1: Point, pt2: Point): number {
   const x = pt2.x - pt1.x;
@@ -19,22 +19,26 @@ export function distanceBetween(pt1: Point, pt2: Point): number {
  */
 export function makeSvgElement(width: number, height: number): SVGSVGElement {
   const elem = document.createElementNS(SVG_NS, 'svg');
+
   elem.setAttribute('width', width.toString());
   elem.setAttribute('height', height.toString());
   elem.setAttribute('viewBox', `0 0 ${width} ${height}`);
+
   return elem;
 }
 
 /**
- * Create an svg line element from (x1, y1) to (x2, y2).
+ * Create an svg line element from (x1,y1) to (x2,y2).
  */
 export function makeLine(x1: number, y1: number, x2: number, y2: number, color = 'black'): SVGLineElement {
   const line = document.createElementNS(SVG_NS, 'line');
+
   line.setAttribute('x1', x1.toString());
   line.setAttribute('y1', y1.toString());
   line.setAttribute('x2', x2.toString());
   line.setAttribute('y2', y2.toString());
   line.setAttribute('stroke', color);
+
   return line;
 }
 
@@ -47,17 +51,19 @@ export function makeLine(x1: number, y1: number, x2: number, y2: number, color =
  */
 export function makeCircle(cx: number, cy: number, r: number, color = 'white'): SVGCircleElement {
   const circle = document.createElementNS(SVG_NS, 'circle');
+
   circle.setAttribute('cx', cx.toString());
   circle.setAttribute('cy', cy.toString());
   circle.setAttribute('r', r.toString());
   circle.setAttribute('stroke', 'black');
   circle.setAttribute('fill', color);
+
   return circle;
 }
 
 /**
  * Create an svg text element and attach it to `parent`.
- * (x,y) is the starting point of the text baseline.
+ * (x,y) is the starting point of the text baseline. TODO: is this still true?
  */
 export function makeText(x: number, y: number, text: string, fontSize = 16): SVGTextElement {
   const textElem = document.createElementNS(SVG_NS, 'text');

@@ -1,14 +1,14 @@
 export interface Point {
-  x: number,
-  y: number
+  x: number;
+  y: number;
 }
 
 /**
  * A string and fret on the fretboard.
  */
 export interface FretCoord {
-  string: number,
-  fret: number
+  string: number;
+  fret: number;
 }
 
 /**
@@ -16,29 +16,32 @@ export interface FretCoord {
  * Represents a dot drawn on the fretboard diagram.
  */
 export interface Dot extends FretCoord {
-  color?: string,
+  color?: string;
 }
 
 /**
  * The settings used by a fretboard diagram.
  */
 export interface Opts {
-  width: number,
-  height: number,
-  startFret: number,
-  endFret: number,
-  showFretNums: boolean,
+  width: number;
+  height: number;
+  startFret: number;
+  endFret: number;
+  showFretNums: boolean;
   stringNames: string[]
-  showStringNames: boolean,
-  dots: Dot[],
-  dotColor: string,
-  drawDotOnHover: boolean,
-  hoverDotColor: string,
-  label: string,
-  onClick: (fretCoord: FretCoord, svgElem: SVGSVGElement) => any
+  showStringNames: boolean;
+  dots: Dot[];
+  dotColor: string;
+  drawDotOnHover: boolean;
+  hoverDotColor: string;
+  label: string;
+  onClick: (fretCoord: FretCoord, svgElem: SVGSVGElement) => any;
 }
 
-export type FretboardData = Opts & {
+/**
+ * Fretboard data that will be calculated from the given Opts.
+ */
+export type FretboardData = {
   xMargin: number;
   yMargin: number;
   neckWidth: number;
@@ -48,19 +51,7 @@ export type FretboardData = Opts & {
   fretCount: number;
   fretHeight: number;
   fretNumOffset: number;
+  dotRadius: number;
 }
 
-export type DrawStringsArgs = Pick<FretboardData,
-  'xMargin' | 'yMargin' | 'neckHeight' | 'stringCount' | 'stringMargin'>
-
-export type DrawFretsArgs = Pick<FretboardData,
-  'width' | 'xMargin' | 'yMargin' | 'fretCount' | 'fretHeight'>
-
-export type DrawLabelArgs = Pick<FretboardData,
-  'width' | 'yMargin' | 'label'>
-
-export type FretCoordPointArgs = Pick<FretboardData,
-  'xMargin' | 'yMargin' | 'stringCount' | 'stringMargin' | 'fretHeight'>
-
-export type DrawFretNumsArgs = Pick<FretboardData,
-  'startFret' | 'endFret' | 'stringCount' | 'xMargin' | 'yMargin' | 'stringMargin' | 'fretHeight' | 'fretNumOffset'>
+export type FretboardState = Opts & FretboardData;

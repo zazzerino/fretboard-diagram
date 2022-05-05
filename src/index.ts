@@ -1,15 +1,12 @@
 import {
-  DrawFretNumsArgs,
-  DrawFretsArgs,
-  DrawLabelArgs,
-  DrawStringsArgs,
+  Dot,
   FretboardData,
+  FretboardState,
   FretCoord,
-  FretCoordPointArgs,
   Opts,
   Point,
 } from "./types";
-import {makeLine, makeSvgElement, makeText} from "./svg";
+import {makeCircle, makeLine, makeSvgElement, makeText} from "./svg";
 
 /**
  * Options for a 6-string guitar in standard tuning.
@@ -30,6 +27,31 @@ const DEFAULT_OPTS: Opts = {
   onClick: (_fretCoord, _svgElem) => null,
 }
 
+/**
+ * The main exported function.
+ * Will create an svg element with a depiction of a fretboard described by the given userOpts.
+ */
+export function makeFretboardDiagram(userOpts: Partial<Opts>, defaultOpts = DEFAULT_OPTS) {
+  const opts: Opts = {...defaultOpts, ...userOpts}; // merge default and user opts
+  const data = fretboardData(opts);
+  const state: FretboardState = {...opts, ...data};
+
+  const elem = makeSvgElement(opts.width, opts.height);
+  const dots = opts.dots;
+
+  drawStrings(elem, state);
+  drawFrets(elem, state);
+
+  if (opts.label) drawLabel(elem, state);
+  if (opts.showFretNums) drawFretNums(elem, state);
+  if (dots.length) drawDots(elem, state, dots);
+
+  return elem;
+}
+
+/**
+ * Calculate fretboard data from the given opts.
+ */
 function fretboardData(opts: Opts): FretboardData {
   const {width, height, stringNames, label, startFret, endFret} = opts;
 
@@ -48,8 +70,9 @@ function fretboardData(opts: Opts): FretboardData {
   const fretHeight = neckHeight / fretCount;
   const fretNumOffset = neckWidth / 6;
 
+  const dotRadius = fretHeight / 6;
+
   return {
-    ...opts,
     xMargin,
     yMargin,
     neckWidth,
@@ -59,32 +82,29 @@ function fretboardData(opts: Opts): FretboardData {
     fretCount,
     fretHeight,
     fretNumOffset,
+    dotRadius,
   };
 }
 
-export function makeFretboardDiagram(userOpts: Partial<Opts>) {
-  const opts: Opts = {...DEFAULT_OPTS, ...userOpts}; // merge default and user opts
-  const data: FretboardData = fretboardData(opts);
-  const svgElem = makeSvgElement(opts.width, opts.height);
+type DrawStringsArgs = Pick<
+  FretboardState,
+  'xMargin' | 'yMargin' | 'neckHeight' | 'stringCount' | 'stringMargin'>
 
-  drawStrings(svgElem, data);
-  drawFrets(svgElem, data);
-
-  if (opts.label) drawLabel(svgElem, data);
-  if (opts.showFretNums) drawFretNums(svgElem, data);
-
-  return svgElem;
-}
-
-function drawStrings(svgElem: SVGElement, args: DrawStringsArgs) {
+function drawStrings(elem: SVGElement, args: DrawStringsArgs) {
   const {xMargin, yMargin, neckHeight, stringCount, stringMargin} = args;
 
   for (let i = 0; i < stringCount; i++) {
     const x = (i * stringMargin) + xMargin;
-    const line = makeLine(x, yMargin, x, yMargin + neckHeight);
-    svgElem.appendChild(line);
+    const y = yMargin;
+    const y2 = yMargin + neckHeight;
+    const line = makeLine(x, y, x, y2);
+    elem.appendChild(line);
   }
 }
+
+type DrawFretsArgs = Pick<
+  FretboardState,
+  'width' | 'xMargin' | 'yMargin' | 'fretCount' | 'fretHeight'>
 
 function drawFrets(elem: SVGElement, args: DrawFretsArgs) {
   const {width, xMargin, yMargin, fretCount, fretHeight} = args;
@@ -98,6 +118,10 @@ function drawFrets(elem: SVGElement, args: DrawFretsArgs) {
   }
 }
 
+type DrawLabelArgs = Pick<
+  FretboardState,
+  'width' | 'yMargin' | 'label'>
+
 function drawLabel(elem: SVGElement, args: DrawLabelArgs) {
   const {width, yMargin, label} = args;
   const x = width / 2;
@@ -106,16 +130,44 @@ function drawLabel(elem: SVGElement, args: DrawLabelArgs) {
   elem.appendChild(textElem);
 }
 
+type DrawFretNumsArgs = Pick<
+  FretboardState,
+  'stringCount' | 'startFret' | 'endFret' | 'fretHeight' | 'fretNumOffset' | 'xMargin' | 'yMargin' | 'stringMargin'>
+
 function drawFretNums(elem: SVGElement, args: DrawFretNumsArgs) {
   const {stringCount: string, startFret, endFret, fretHeight, fretNumOffset} = args;
   const fontSize = 16; // TODO: adjust this for different diagram sizes
 
   for (let fret = startFret; fret <= endFret; fret++) {
-    const {x, y} = fretCoordPoint({fret, string}, args);
-    const textElem = makeText(x-fretNumOffset, y+fretHeight/4, fret.toString(), fontSize);
+    const point = fretCoordPoint({fret, string}, args);
+    const x = point.x - fretNumOffset;
+    const y = point.y + fretHeight / 4;
+    const textElem = makeText(x, y, fret.toString(), fontSize);
     elem.appendChild(textElem);
   }
 }
+
+type DrawDotArgs = FretCoordPointArgs & Pick<
+  FretboardState,
+  'dotColor' | 'dotRadius'>
+
+function drawDot(elem: SVGElement, args: DrawDotArgs, dot: Dot) {
+  const {dotColor, dotRadius} = args;
+  const {x, y} = fretCoordPoint(dot, args);
+  const color = dot.color || dotColor;
+  const radiusShrinkage = dot.fret === 0 ? 0.75 : 1; // open string dots will be a little smaller
+  const radius = dotRadius * radiusShrinkage;
+  const circle = makeCircle(x, y, radius, color);
+  elem.appendChild(circle);
+}
+
+function drawDots(elem: SVGElement, args: DrawDotArgs, dots: Dot[]) {
+  dots.forEach(dot => drawDot(elem, args, dot));
+}
+
+type FretCoordPointArgs = Pick<
+  FretboardState,
+  'xMargin' | 'yMargin' | 'stringCount' | 'stringMargin' | 'fretHeight'>
 
 /**
  * Takes a FretCoord and returns the Point relative to the top left of the parent svg container.
@@ -124,7 +176,7 @@ function fretCoordPoint(fretCoord: FretCoord, args: FretCoordPointArgs) {
   const {string, fret} = fretCoord;
   const {xMargin, yMargin, stringCount, stringMargin, fretHeight} = args;
 
-  const stringNum = Math.abs(string - stringCount);
+  const stringNum = Math.abs(string - stringCount); // TODO: try to remember why I wrote it this way
   const x = (stringNum * stringMargin) + xMargin;
   const yOffset = fret === 0 ? 0 : -fretHeight / 8;
   const y = (fret * fretHeight) - (fretHeight / 2) + yMargin + yOffset;
@@ -136,15 +188,15 @@ function fretCoordPoint(fretCoord: FretCoord, args: FretCoordPointArgs) {
  * Returns the svg coordinate (x,y) of the `event`, i.e., the coordinate that was clicked.
  */
 function cursorPoint(elem: SVGSVGElement, event: MouseEvent): Point {
-    const point = elem.createSVGPoint();
-    point.x = event.clientX;
-    point.y = event.clientY;
+  const point = elem.createSVGPoint();
+  point.x = event.clientX;
+  point.y = event.clientY;
 
-    const screenCTM = elem.getScreenCTM();
-    if (!screenCTM) throw new Error(`could not get the screen ctm of ${elem}`);
+  const screenCTM = elem.getScreenCTM();
+  if (!screenCTM) throw new Error(`could not get the screen ctm of ${elem}`);
 
-    const matrix = screenCTM.inverse();
-    return point.matrixTransform(matrix);
+  const matrix = screenCTM.inverse();
+  return point.matrixTransform(matrix);
 }
 
 /**
