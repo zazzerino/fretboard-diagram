@@ -31,7 +31,7 @@ const DEFAULT_OPTS: Opts = {
  * The main exported function.
  * Will create an svg element with a depiction of a fretboard described by the given userOpts.
  */
-export function makeFretboardDiagram(userOpts: Partial<Opts>, defaultOpts = DEFAULT_OPTS) {
+export function makeFretboardDiagram(userOpts: Partial<Opts>, defaultOpts = DEFAULT_OPTS): SVGSVGElement {
   const opts: Opts = {...defaultOpts, ...userOpts}; // merge default and user opts
   const data = fretboardData(opts);
   const state: FretboardState = {...opts, ...data};
@@ -44,7 +44,7 @@ export function makeFretboardDiagram(userOpts: Partial<Opts>, defaultOpts = DEFA
 
   if (opts.label) drawLabel(elem, state);
   if (opts.showFretNums) drawFretNums(elem, state);
-  if (dots.length) drawDots(elem, state, dots); // will only be called if dots.length > 0
+  if (dots.length) drawDots(elem, state, dots);
 
   return elem;
 }
@@ -56,7 +56,7 @@ function fretboardData(opts: Opts): FretboardData {
   const {width, height, stringNames, label, startFret, endFret} = opts;
 
   const xMargin = width / 6;
-  const yMarginOffset = label === '' ? 1 : 1.5;
+  const yMarginOffset = label == '' ? 1 : 1.5;
   const yMargin = (height / 8) * yMarginOffset;
 
   const neckWidth = width - (xMargin * 2);
@@ -65,8 +65,9 @@ function fretboardData(opts: Opts): FretboardData {
   const stringCount = stringNames.length;
   const stringMargin = neckWidth / (stringCount - 1);
 
-  const fretCountOffset = startFret === 0 ? 0 : 1;
+  const fretCountOffset = startFret == 0 ? 0 : 1;
   const fretCount = (endFret - startFret) + fretCountOffset;
+
   const fretHeight = neckHeight / fretCount;
   const fretNumOffset = neckWidth / 6;
 
@@ -95,9 +96,9 @@ function drawStrings(elem: SVGElement, args: DrawStringsArgs) {
 
   for (let i = 0; i < stringCount; i++) {
     const x = (i * stringMargin) + xMargin;
-    const y = yMargin;
+    const y1 = yMargin;
     const y2 = yMargin + neckHeight;
-    const line = makeLine(x, y, x, y2);
+    const line = makeLine(x, y1, x, y2);
     elem.appendChild(line);
   }
 }
