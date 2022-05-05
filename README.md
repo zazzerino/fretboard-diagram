@@ -22,7 +22,7 @@ You should probably read the src files in this order: `types.ts` -> `svg.ts` -> 
 
 Run `npm run build` to create an optimized version of the library in a single file in dist/.
 
-![](/home/kdp/Documents/projects/fretboard-diagram/fretboard-diagram.png)
+[A minor diagram](https://github.com/zazzerino/fretboard-diagram/blob/main/fretboard-diagram.png)
 
 ## Example Usage
 
