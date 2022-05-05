@@ -8,10 +8,13 @@ import {
 } from "./types";
 import {makeCircle, makeLine, makeSvgElement, makeText} from "./svg";
 
+const className = 'fretboard-diagram';
+
 /**
  * Options for a 6-string guitar in standard tuning.
  */
 const DEFAULT_OPTS: Opts = {
+  className,
   width: 200,
   height: 300,
   startFret: 1,
@@ -23,8 +26,6 @@ const DEFAULT_OPTS: Opts = {
   dotColor: 'white',
   drawDotOnHover: false,
   hoverDotColor: 'white',
-  label: '',
-  onClick: (_fretCoord, _svgElem) => null,
 }
 
 /**
@@ -33,20 +34,29 @@ const DEFAULT_OPTS: Opts = {
  */
 export function makeFretboardDiagram(userOpts: Partial<Opts>, defaultOpts = DEFAULT_OPTS): SVGSVGElement {
   const opts: Opts = {...defaultOpts, ...userOpts}; // merge default and user opts
-  const data = fretboardData(opts);
-  const state: FretboardState = {...opts, ...data};
+  const state: FretboardState = {...opts, ...fretboardData(opts)}; // merge opts and data calculated from opts
 
-  const elem = makeSvgElement(opts.width, opts.height);
-  const dots = opts.dots;
+  const {width, height, dots, label, showFretNums, onClick} = opts;
+  const elem = makeSvgElement(width, height);
+  elem.classList.add(className);
 
   drawStrings(elem, state);
   drawFrets(elem, state);
 
-  if (opts.label) drawLabel(elem, state);
-  if (opts.showFretNums) drawFretNums(elem, state);
-  if (dots.length) drawDots(elem, state, dots);
+  if (label) drawLabel(elem, state, label);
+  if (showFretNums) drawFretNums(elem, state);
+  if (dots.length) drawDots(elem, state, dots); // won't be called if dots.length is 0
+
+  if (onClick) {
+    elem.onclick = (ev: MouseEvent) => handleClick(elem, ev);
+  }
 
   return elem;
+}
+
+function handleClick(elem: SVGSVGElement, ev: MouseEvent) {
+  const point = cursorPoint(elem, ev);
+  console.log(point);
 }
 
 /**
@@ -123,8 +133,8 @@ type DrawLabelArgs = Pick<
   FretboardState,
   'width' | 'yMargin' | 'label'>
 
-function drawLabel(elem: SVGElement, args: DrawLabelArgs) {
-  const {width, yMargin, label} = args;
+function drawLabel(elem: SVGElement, args: DrawLabelArgs, label: string) {
+  const {width, yMargin} = args;
   const x = width / 2;
   const y = yMargin - (yMargin / 2);
   const textElem = makeText(x, y, label);
@@ -155,10 +165,13 @@ type DrawDotArgs = FretCoordPointArgs & Pick<
 function drawDot(elem: SVGElement, args: DrawDotArgs, dot: Dot) {
   const {dotColor, dotRadius} = args;
   const {x, y} = fretCoordPoint(dot, args);
+
   const color = dot.color || dotColor;
-  const radiusShrinkage = dot.fret === 0 ? 0.75 : 1; // open string dots will be a little smaller
-  const radius = dotRadius * radiusShrinkage;
-  const circle = makeCircle(x, y+dotRadius/2, radius, color);
+  const dotScale = dot.fret === 0 ? 0.75 : 1; // open string dots will be a little smaller
+  const radius = dotRadius * dotScale;
+  const cy = y + (dotRadius / 2);
+
+  const circle = makeCircle(x, cy, radius, color);
   elem.appendChild(circle);
 }
 

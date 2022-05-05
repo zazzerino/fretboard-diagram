@@ -56,7 +56,7 @@ export function makeCircle(cx: number, cy: number, r: number, color = 'white'): 
 }
 
 /**
- * Create an svg text element and attach it to `parent`.
+ * Create an svg text element.
  * (x,y) is the starting point of the text baseline. TODO: is this still true?
  */
 export function makeText(x: number, y: number, text: string, fontSize = 16): SVGTextElement {

@@ -23,6 +23,7 @@ export interface Dot extends FretCoord {
  * The settings used by a fretboard diagram.
  */
 export interface Opts {
+  className: string;
   width: number;
   height: number;
   startFret: number;
@@ -34,8 +35,8 @@ export interface Opts {
   dotColor: string;
   drawDotOnHover: boolean;
   hoverDotColor: string;
-  label: string;
-  onClick: (fretCoord: FretCoord, svgElem: SVGSVGElement) => any;
+  label?: string;
+  onClick?: (fretCoord: FretCoord, svgElem: SVGSVGElement) => any;
 }
 
 /**
@@ -54,4 +55,7 @@ export type FretboardData = {
   dotRadius: number;
 }
 
+/**
+ * An object combining the keys of Opts and FretboardData.
+ */
 export type FretboardState = Opts & FretboardData;
