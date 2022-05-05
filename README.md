@@ -1,32 +1,55 @@
 # Fretboard Diagram
 
 A simple tool for creating fretboard diagrams.
+Look at example.html for an example.
 
 ## Install
 
-    npm install --save fretboard-diagram
+```
+git clone https://github.com/zazzerino/fretboard-diagram.git
+cd fretboard-diagram/
+npm install
+npm run start
+```
 
-## Usage
+Then, open example.html in a browser window.
 
-    import { FretboardDiagram } from 'fretboard-diagram'
+After updating the source (one of the files in src/), reload the page to see changes.
 
-    const AmChord = [
-      { string: 5, fret: 3 },
-      { string: 3, fret: 2, color: "limegreen" },
-      { string: 1, fret: 0, color: "salmon" }
-    ];
+You should probably read the src files in this order: `types.ts` -> `svg.ts` -> `index.ts`.
 
-    const div = document.createElement('div');
-    div.setAttribute("id", "diagram-id");
-    document.body.appendChild(div);
+`index.ts` exports `makeFretboardDiagram`, which is the main function.
 
-    const diagram = new FretboardDiagram({
-      id: "diagram-id",
-      dots: AmChord,
-      label: "A min",
-      showFretNums: true,
-      showStringNames: true,
-      onClick: (dot, fd) => {
-        console.log(`you clicked string: ${dot.string}, fret: ${dot.fret}`);
-      }
-    });
+Run `npm run build` to create an optimized version of the library in a single file in dist/.
+
+![](/home/kdp/Documents/projects/fretboard-diagram/fretboard-diagram.png)
+
+## Example Usage
+
+    <script type="text/javascript">
+      const makeFretboardDiagram = exports.makeFretboardDiagram;
+    
+      /**
+       * ZPiDER's answer from https://stackoverflow.com/questions/1484506/random-color-generator
+       */
+      const randomColor = () => '#' + ((1 << 24) * Math.random() | 0).toString(16);
+    
+      const dots = [
+        {string: 5, fret: 3, color: randomColor()},
+        {string: 3, fret: 2, color: randomColor()},
+        {string: 1, fret: 0, color: randomColor()},
+      ];
+    
+      const opts = {
+        dots,
+        showFretNums: true,
+        label: 'Amin',
+        onClick: coord => console.log(`clicked on string: ${coord.string}, fret: ${coord.fret}`)
+      };
+    
+      const diagram = makeFretboardDiagram(opts);
+      console.log(diagram);
+    
+      const div = document.getElementById('Am-diagram');
+      div.appendChild(diagram);
+    </script>
