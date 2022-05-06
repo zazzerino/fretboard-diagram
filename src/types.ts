@@ -20,6 +20,11 @@ export interface Dot extends FretCoord {
 }
 
 /**
+ * The function called when the diagram is clicked.
+ */
+export type OnClick = (elem: SVGSVGElement, state: FretboardState, coord: FretCoord) => any;
+
+/**
  * The settings used by a fretboard diagram.
  */
 export interface Opts {
@@ -36,7 +41,7 @@ export interface Opts {
   drawDotOnHover: boolean;
   hoverDotColor: string;
   label?: string;
-  onClick?: (fretCoord: FretCoord, svgElem: SVGSVGElement) => any;
+  onClick?: OnClick;
 }
 
 /**

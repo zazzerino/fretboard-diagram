@@ -2,7 +2,7 @@ import {
   Dot,
   FretboardData,
   FretboardState,
-  FretCoord,
+  FretCoord, OnClick,
   Opts,
   Point,
 } from "./types";
@@ -32,11 +32,11 @@ const DEFAULT_OPTS: Opts = {
  */
 export function makeFretboardDiagram(userOpts: Partial<Opts>, defaultOpts = DEFAULT_OPTS): SVGSVGElement {
   const opts: Opts = {...defaultOpts, ...userOpts}; // merge default and user opts
-  const data = fretboardData(opts);
+  const data: FretboardData = fretboardData(opts);
   const state: FretboardState = {...opts, ...data};
 
-  const {className, width, height, dots, label, showFretNums, onClick} = opts;
-  const elem = makeSvgElement(width, height, className);
+  const {width, height, className, dots, label, showFretNums, onClick} = opts;
+  const elem: SVGSVGElement = makeSvgElement(width, height, className);
 
   drawStrings(elem, state);
   drawFrets(elem, state);
@@ -46,22 +46,30 @@ export function makeFretboardDiagram(userOpts: Partial<Opts>, defaultOpts = DEFA
   if (dots.length) drawDots(elem, state, dots); // won't be called if dots.length is 0
 
   if (onClick) {
-    elem.onclick = ev => handleClick(elem, state, ev);
+    elem.onclick = event => handleClick(elem, state, event, onClick);
   }
 
   return elem;
 }
 
-type HandleClickArgs = Pick<
-  FretboardState,
-  'xMargin' | 'yMargin'>
+// const stringNum = Math.abs(string - stringCount); // TODO: try to remember why I wrote it this way
 
-function handleClick(elem: SVGSVGElement, args: HandleClickArgs, ev: MouseEvent) {
-  const {xMargin, yMargin} = args;
-  const point = cursorPoint(elem, ev);
-  const x = point.x + xMargin;
-  const y = point.y;
-  console.log(`x:${x}, y:${y}`);
+function handleClick(elem: SVGSVGElement, state: FretboardState, event: MouseEvent, onClick: OnClick) {
+  const {xMargin, yMargin, stringMargin, fretHeight, stringCount} = state;
+  const point = cursorPoint(elem, event);
+  const x = point.x - xMargin;
+  const y = point.y - yMargin + (fretHeight / 2);
+
+  const string = Math.abs(Math.round(x / stringMargin) - stringCount);
+  const fret = Math.round(y / fretHeight);
+  const coord: FretCoord = {string, fret};
+
+  console.log(coord);
+  onClick(elem, state, coord);
+}
+
+function closestFretCoord() {
+
 }
 
 /**
@@ -172,7 +180,7 @@ function drawDot(elem: SVGElement, args: DrawDotArgs, dot: Dot) {
   const {x, y} = fretCoordPoint(dot, args);
 
   const color = dot.color || dotColor;
-  const dotScale = dot.fret === 0 ? 0.75 : 1; // open string dots will be a little smaller
+  const dotScale = dot.fret === 0 ? 0.66 : 1; // open string dots will be a little smaller
   const radius = dotRadius * dotScale;
   const cy = y + (radius / 2);
 

@@ -22,7 +22,7 @@ You should probably read the src files in this order: `types.ts` -> `svg.ts` -> 
 
 Run `npm run build` to create an optimized version of the library in a single file in dist/.
 
-[A minor diagram](https://github.com/zazzerino/fretboard-diagram/blob/main/fretboard-diagram.png)
+![A-minor diagram](./fretboard-diagram.png)
 
 ## Example Usage
 
@@ -53,3 +53,6 @@ Run `npm run build` to create an optimized version of the library in a single fi
       const div = document.getElementById('Am-diagram');
       div.appendChild(diagram);
     </script>
+
+## Thanks
+- Joe Harris, for a nearest neighbor algorithm
