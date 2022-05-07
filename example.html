@@ -33,7 +33,7 @@
     dots,
     showFretNums: true,
     label: 'Amin',
-    onClick: (_elem, _state, coord) => console.log(`clicked on string: ${coord.string}, fret: ${coord.fret}`)
+    onClick: coord => console.log(`clicked on string: ${coord.string}, fret: ${coord.fret}`)
   };
 
   const diagram = makeFretboardDiagram(opts);
