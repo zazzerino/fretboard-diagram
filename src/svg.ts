@@ -58,7 +58,7 @@ export function makeCircle(cx: number, cy: number, r: number, color = 'white'): 
 
 /**
  * Create an svg text element.
- * (x,y) is the starting point of the text baseline. TODO: is this still true?
+ * (x,y) is the starting point of the text baseline.
  */
 export function makeText(x: number, y: number, text: string, fontSize = 16): SVGTextElement {
   const textElem = document.createElementNS(SVG_NS, 'text');

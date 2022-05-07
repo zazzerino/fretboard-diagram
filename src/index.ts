@@ -28,15 +28,14 @@ const DEFAULT_OPTS: Opts = {
 
 /**
  * The main exported function.
- * Will create an svg element with a depiction of a fretboard described by the given userOpts.
+ * Will return an svg element with a depiction of a fretboard described by the given userOpts.
  */
 export function makeFretboardDiagram(userOpts: Partial<Opts>, defaultOpts = DEFAULT_OPTS): SVGSVGElement {
   const opts: Opts = {...defaultOpts, ...userOpts}; // merge default and user opts
-  const data: FretboardData = fretboardData(opts);
-  const state: FretboardState = {...opts, ...data};
+  const state: FretboardState = {...opts, ...fretboardData(opts)};
 
   const {width, height, className, dots, label, showFretNums, onClick} = opts;
-  const elem: SVGSVGElement = makeSvgElement(width, height, className);
+  const elem = makeSvgElement(width, height, className);
 
   drawStrings(elem, state);
   drawFrets(elem, state);
@@ -50,26 +49,6 @@ export function makeFretboardDiagram(userOpts: Partial<Opts>, defaultOpts = DEFA
   }
 
   return elem;
-}
-
-// const stringNum = Math.abs(string - stringCount); // TODO: try to remember why I wrote it this way
-
-function handleClick(elem: SVGSVGElement, state: FretboardState, event: MouseEvent, onClick: OnClick) {
-  const {xMargin, yMargin, stringMargin, fretHeight, stringCount} = state;
-  const point = cursorPoint(elem, event);
-  const x = point.x - xMargin;
-  const y = point.y - yMargin + (fretHeight / 2);
-
-  const string = Math.abs(Math.round(x / stringMargin) - stringCount);
-  const fret = Math.round(y / fretHeight);
-  const coord: FretCoord = {string, fret};
-
-  console.log(coord);
-  onClick(elem, state, coord);
-}
-
-function closestFretCoord() {
-
 }
 
 /**
@@ -110,12 +89,8 @@ function fretboardData(opts: Opts): FretboardData {
   };
 }
 
-type DrawStringsArgs = Pick<
-  FretboardState,
-  'xMargin' | 'yMargin' | 'neckHeight' | 'stringCount' | 'stringMargin'>
-
-function drawStrings(elem: SVGElement, args: DrawStringsArgs) {
-  const {xMargin, yMargin, neckHeight, stringCount, stringMargin} = args;
+function drawStrings(elem: SVGElement, state: FretboardState) {
+  const {xMargin, yMargin, neckHeight, stringCount, stringMargin} = state;
 
   for (let i = 0; i < stringCount; i++) {
     const x = (i * stringMargin) + xMargin;
@@ -126,12 +101,8 @@ function drawStrings(elem: SVGElement, args: DrawStringsArgs) {
   }
 }
 
-type DrawFretsArgs = Pick<
-  FretboardState,
-  'width' | 'xMargin' | 'yMargin' | 'fretCount' | 'fretHeight'>
-
-function drawFrets(elem: SVGElement, args: DrawFretsArgs) {
-  const {width, xMargin, yMargin, fretCount, fretHeight} = args;
+function drawFrets(elem: SVGElement, state: FretboardState) {
+  const {width, xMargin, yMargin, fretCount, fretHeight} = state;
 
   for (let i = 0; i <= fretCount; i++) {
     const y = (i * fretHeight) + yMargin;
@@ -142,42 +113,30 @@ function drawFrets(elem: SVGElement, args: DrawFretsArgs) {
   }
 }
 
-type DrawLabelArgs = Pick<
-  FretboardState,
-  'width' | 'yMargin' | 'label'>
-
-function drawLabel(elem: SVGElement, args: DrawLabelArgs, label: string) {
-  const {width, yMargin} = args;
+function drawLabel(elem: SVGElement, state: FretboardState, label: string) {
+  const {width, yMargin} = state;
   const x = width / 2;
   const y = yMargin - (yMargin / 2);
   const textElem = makeText(x, y, label);
   elem.appendChild(textElem);
 }
 
-type DrawFretNumsArgs = Pick<
-  FretboardState,
-  'stringCount' | 'startFret' | 'endFret' | 'fretHeight' | 'fretNumOffset' | 'xMargin' | 'yMargin' | 'stringMargin'>
-
-function drawFretNums(elem: SVGElement, args: DrawFretNumsArgs) {
-  const {stringCount: string, startFret, endFret, fretHeight, fretNumOffset} = args;
+function drawFretNums(elem: SVGElement, state: FretboardState) {
+  const {stringCount: string, startFret, endFret, fretHeight, fretNumOffset} = state;
   const fontSize = 16; // TODO: adjust this for different diagram sizes
 
   for (let fret = startFret; fret <= endFret; fret++) {
-    const point = fretCoordPoint({fret, string}, args);
+    const point = fretCoordPoint({fret, string}, state);
     const x = point.x - fretNumOffset;
-    const y = point.y + fretHeight / 4;
+    const y = point.y + (fretHeight / 4);
     const textElem = makeText(x, y, fret.toString(), fontSize);
     elem.appendChild(textElem);
   }
 }
 
-type DrawDotArgs = FretCoordPointArgs & Pick<
-  FretboardState,
-  'dotColor' | 'dotRadius'>
-
-function drawDot(elem: SVGElement, args: DrawDotArgs, dot: Dot) {
-  const {dotColor, dotRadius} = args;
-  const {x, y} = fretCoordPoint(dot, args);
+function drawDot(elem: SVGElement, state: FretboardState, dot: Dot) {
+  const {dotColor, dotRadius} = state;
+  const {x, y} = fretCoordPoint(dot, state);
 
   const color = dot.color || dotColor;
   const dotScale = dot.fret === 0 ? 0.66 : 1; // open string dots will be a little smaller
@@ -188,22 +147,18 @@ function drawDot(elem: SVGElement, args: DrawDotArgs, dot: Dot) {
   elem.appendChild(circle);
 }
 
-function drawDots(elem: SVGElement, args: DrawDotArgs, dots: Dot[]) {
-  dots.forEach(dot => drawDot(elem, args, dot));
+function drawDots(elem: SVGElement, state: FretboardState, dots: Dot[]) {
+  dots.forEach(dot => drawDot(elem, state, dot));
 }
-
-type FretCoordPointArgs = Pick<
-  FretboardState,
-  'xMargin' | 'yMargin' | 'stringCount' | 'stringMargin' | 'fretHeight'>
 
 /**
  * Takes a FretCoord and returns the Point relative to the top left of the parent svg container.
  */
-function fretCoordPoint(fretCoord: FretCoord, args: FretCoordPointArgs) {
+function fretCoordPoint(fretCoord: FretCoord, state: FretboardState) {
   const {string, fret} = fretCoord;
-  const {xMargin, yMargin, stringCount, stringMargin, fretHeight} = args;
+  const {xMargin, yMargin, stringCount, stringMargin, fretHeight} = state;
 
-  const stringNum = Math.abs(string - stringCount); // TODO: try to remember why I wrote it this way
+  const stringNum = Math.abs(string - stringCount);
   const x = (stringNum * stringMargin) + xMargin;
   const yOffset = fret === 0 ? 0 : -fretHeight / 8;
   const y = (fret * fretHeight) - (fretHeight / 2) + yMargin + yOffset;
@@ -224,6 +179,25 @@ function cursorPoint(elem: SVGSVGElement, event: MouseEvent): Point {
 
   const matrix = screenCTM.inverse();
   return point.matrixTransform(matrix);
+}
+
+/**
+ * Find the closest FretCoord to the clicked point.
+ */
+function closestFretCoord(elem: SVGSVGElement, state: FretboardState, event: MouseEvent): FretCoord {
+  const {xMargin, yMargin, stringMargin, fretHeight, stringCount} = state;
+  const point = cursorPoint(elem, event);
+  const x = point.x - xMargin;
+  const y = point.y - yMargin + (fretHeight / 2);
+
+  const string = Math.abs(Math.round(x / stringMargin) - stringCount);
+  const fret = Math.round(y / fretHeight);
+  return {string, fret};
+}
+
+function handleClick(elem: SVGSVGElement, state: FretboardState, event: MouseEvent, onClick: OnClick) {
+  const coord = closestFretCoord(elem, state, event);
+  onClick(elem, state, coord);
 }
 
 /**
